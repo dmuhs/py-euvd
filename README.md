@@ -62,6 +62,12 @@ To work on the documentation in `docs/`:
 uv run --only-group docs zensical serve    # preview at http://localhost:8000
 ```
 
+To release, add an entry to `CHANGELOG.md`, push, then create a GitHub release. The version comes from the tag, and the release is uploaded to PyPI automatically:
+
+```
+gh release create v1.2.3 --notes "See CHANGELOG.md"
+```
+
 ## License
 
 [Apache License 2.0](https://github.com/dmuhs/py-euvd/blob/main/LICENSE)

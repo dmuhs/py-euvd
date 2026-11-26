@@ -175,3 +175,6 @@ cython_debug/
 
 # Cloudflare Wrangler
 .wrangler/
+
+# Written at build time from the git tag
+pyeuvd/_version.py

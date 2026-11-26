@@ -17,9 +17,14 @@ jobs:
       contents: read
       id-token: write
     steps:
+      # The version comes from the git tag, so the tags must be fetched.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v10.4.0
-      - run: uv sync
+      - run: uv sync --locked
       - run: uv run pytest --cov
       - run: uv build
+      # Stops before the upload if the built version is not the released tag.
+      - run: ls "dist/py_euvd-${GITHUB_REF_NAME#v}-py3-none-any.whl" "dist/py_euvd-${GITHUB_REF_NAME#v}.tar.gz"
       - uses: pypa/gh-action-pypi-publish@release/v1
