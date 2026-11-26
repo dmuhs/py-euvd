@@ -1,0 +1,25 @@
+name: Publish
+
+# Runs when a GitHub release is published. Uploads to PyPI with trusted
+# publishing, so no API token is stored in the repository.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.4.0
+      - run: uv sync
+      - run: uv run pytest --cov
+      - run: uv build
+      - uses: pypa/gh-action-pypi-publish@release/v1

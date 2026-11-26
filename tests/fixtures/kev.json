@@ -1,0 +1,26 @@
+[
+  {
+    "cveId": "CVE-2021-22555",
+    "euvdId": "EUVD-2021-9696",
+    "dateAdded": "2025-10-06",
+    "sources": [
+      "cisa_kev"
+    ]
+  },
+  {
+    "cveId": "CVE-2024-38856",
+    "euvdId": "EUVD-2024-37643",
+    "dateAdded": "2024-08-27",
+    "sources": [
+      "cisa_kev"
+    ]
+  },
+  {
+    "cveId": "CVE-2021-21220",
+    "euvdId": "EUVD-2021-8611",
+    "dateAdded": "2021-11-03",
+    "sources": [
+      "cisa_kev"
+    ]
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "id": "EUVD-2026-136485",
+    "enisaUuid": "d37604aa-44a4-3929-a160-835c4b92db44",
+    "description": "Chainlit is vulnerable to a file upload block bypass in the \"spontaneous_file_upload\" functionality. Disabling the feature with the \"enabled = false\" option only affects the frontend, while the backend upload endpoints remain active and can be abused directly. An attacker with a valid session ID can send requests to these backend endpoints to upload arbitrary file types and then generate a retrieval URL that is accessible to anyone who obtains the link. This allows the attacker to serve malicious content, such as a fake login pages, from the application's trusted domain, which can be used for phishing attacks against users.\n\n\n\n\nThe vulnerability has only been confirmed in versions 2.10.0 and 2.12.0 but may also affect other versions.",
+    "datePublished": "Nov 26, 2026, 1:37:15 PM",
+    "dateUpdated": "Nov 26, 2026, 1:37:15 PM",
+    "baseScore": 6.3,
+    "baseScoreVersion": "4.0",
+    "baseScoreVector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N",
+    "references": "https://cert.pl/en/posts/2026/11/CVE-2026-110699\nhttps://chainlit.io/\n",
+    "aliases": "CVE-2026-110699\n",
+    "assigner": "CERT-PL",
+    "epss": 0.0,
+    "enisaIdVendor": [
+      {
+        "id": "0a2e0ab3-64f0-3ebf-ac0b-643fc41d28d1",
+        "vendor": {
+          "name": "Chainlit"
+        }
+      }
+    ]
+  },
+  {
+    "id": "EUVD-2026-136483",
+    "enisaUuid": "3fc5b95b-1c71-32ee-96b1-d82d04688a56",
+    "description": "GNU Screen is vulnerable to a Time-of-Check/Time-of-Use (TOCTOU) race condition in the hardcopy file handler. Due to checking write permissions using the real user ID and subsequently opening the file using the effective user ID, a local unprivileged attacker can atomically replace the target path with a symbolic link pointing to an arbitrary system file. Successfully exploiting this race condition allows the attacker to write to arbitrary files with root privileges, leading to local privilege escalation\n\n\n\nThis issue was fixed in version 5.0.2.",
+    "datePublished": "Nov 26, 2026, 1:22:26 PM",
+    "dateUpdated": "Nov 26, 2026, 1:22:26 PM",
+    "baseScore": 5.5,
+    "baseScoreVersion": "4.0",
+    "baseScoreVector": "CVSS:4.0/AV:L/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:N/SC:H/SI:H/SA:H",
+    "references": "https://cert.pl/en/posts/2026/11/CVE-2026-71409\nhttps://savannah.gnu.org/git/?group=screen\nhttps://cgit.git.savannah.gnu.org/cgit/screen.git/commit/?h=screen-v5&id=3dea5ff20c58ad497062d094b6a9b80a7535a7db\nhttps://cgit.git.savannah.gnu.org/cgit/screen.git/commit/?h=screen-v5&id=15a1481ad85309835c466a49f99a55537a78d596\n",
+    "aliases": "CVE-2026-71411\n",
+    "assigner": "CERT-PL",
+    "epss": 0.0,
+    "enisaIdVendor": [
+      {
+        "id": "353d4821-31d6-304a-a07a-8987ee8e367d",
+        "vendor": {
+          "name": "GNU"
+        }
+      }
+    ]
+  }
+]
