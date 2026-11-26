@@ -1,30 +1,54 @@
 name: Publish
 
-# Runs when a GitHub release is published. Uploads to PyPI with trusted
-# publishing, so no API token is stored in the repository.
 on:
+  push:
+    branches: [main]
   release:
     types: [published]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
-  publish:
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    environment: pypi
     permissions:
       contents: read
-      id-token: write
     steps:
       # The version comes from the git tag, so the tags must be fetched.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          # A release build must not start from files cached by an earlier run.
+          enable-cache: false
       - run: uv sync --locked
       - run: uv run pytest --cov
       - run: uv build
-      # Stops before the upload if the built version is not the released tag.
-      - run: ls "dist/py_euvd-${GITHUB_REF_NAME#v}-py3-none-any.whl" "dist/py_euvd-${GITHUB_REF_NAME#v}.tar.gz"
+      # Stops a release if the built version is not the released tag.
+      - if: github.event_name == 'release'
+        run: ls "dist/py_euvd-${GITHUB_REF_NAME#v}-py3-none-any.whl" "dist/py_euvd-${GITHUB_REF_NAME#v}.tar.gz"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  # PyPI trusts this workflow file name together with the "pypi" environment.
+  # Renaming either breaks publishing until PyPI's settings are changed too.
+  publish:
+    name: Upload to PyPI
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # for PyPI trusted publishing
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
