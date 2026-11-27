@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- A search result without a usable `total` now raises `EUVDError`. Before, `iter_search` stopped after the first page without an error, and a `total` of `NaN` raised `ValueError`.
+
 ## 0.2.2 (2026-11-27)
 
 - Security: the built-in transport no longer follows a redirect to an `ftp://` address. The request fails with an `APIError` instead.

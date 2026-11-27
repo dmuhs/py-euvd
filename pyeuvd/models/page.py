@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Any, Self, overload
 
+from ..errors import EUVDError
 from ..parsing import expect_dict, parse_number
 from .vulnerability import Vulnerability
 
@@ -52,11 +54,17 @@ class Page:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any], *, page: int, size: int) -> Self:
-        """Build a page from the JSON of the search endpoint."""
+        """Build a page from the JSON of the search endpoint.
+
+        Raises ``EUVDError`` if it holds no total.
+        """
         data = expect_dict(data)
+        total = parse_number(data.get("total"))
+        if total is None or not math.isfinite(total):
+            raise EUVDError("the search result has no total")
         return cls(
             items=tuple(Vulnerability.from_list(data.get("items"))),
-            total=int(parse_number(data.get("total")) or 0),
+            total=int(total),
             page=page,
             size=size,
         )

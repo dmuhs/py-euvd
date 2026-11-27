@@ -278,11 +278,17 @@ def test_page_from_dict():
 
 
 def test_page_from_dict_with_odd_data():
-    assert Page.from_dict({"total": "many"}, page=0, size=10) == Page(
-        items=(), total=0, page=0, size=10
-    )
+    assert Page.from_dict({"total": 0}, page=0, size=10) == Page(items=(), total=0, page=0, size=10)
     with pytest.raises(EUVDError):
         Page.from_dict([], page=0, size=10)
+
+
+@pytest.mark.parametrize("total", ["many", None, float("nan"), float("inf")])
+def test_page_from_dict_needs_a_total(total):
+    with pytest.raises(EUVDError, match="no total"):
+        Page.from_dict({"items": [{"id": "x"}], "total": total}, page=0, size=10)
+    with pytest.raises(EUVDError, match="no total"):
+        Page.from_dict({"items": [{"id": "x"}]}, page=0, size=10)
 
 
 def test_page_has_next():
