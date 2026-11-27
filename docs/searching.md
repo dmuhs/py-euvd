@@ -25,6 +25,22 @@ for vuln in euvd.iter_search(text="keycloak", limit=500):
 
 Set `limit` unless you want every result. A broad search can match hundreds of thousands of entries.
 
+## Entries that change during a search
+
+An entry that is updated while `iter_search` runs moves to the front of the results. The search then never reaches it, and returns another entry twice. Currently, the EUVD API has no facilities to fix this problem. For a short search this is rarely an issue. A search that runs for minutes, such as a copy of the whole database, will run into this problem. The solution is to keep the results by ID, then fetch what was updated since the day before you started:
+
+```python
+from datetime import date, timedelta
+
+day_before = date.today() - timedelta(days=1)
+
+entries = {vuln.id: vuln for vuln in euvd.iter_search()}
+for vuln in euvd.iter_search(from_updated_date=day_before):
+    entries[vuln.id] = vuln
+```
+
+Use the same filters in both searches.
+
 ## Only the number
 
 ```python
