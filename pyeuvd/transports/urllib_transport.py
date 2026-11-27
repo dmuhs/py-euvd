@@ -3,10 +3,11 @@ from __future__ import annotations
 import logging
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections.abc import Generator, Mapping
-from http.client import HTTPException
-from typing import Any
+from http.client import HTTPException, HTTPMessage
+from typing import IO, Any
 
 from ..constants import DEFAULT_TIMEOUT, USER_AGENT
 from ..errors import APIError, TransportError
@@ -20,6 +21,25 @@ logger = logging.getLogger(__name__)
 RETRY_STATUSES = frozenset({429, 502, 503, 504})
 
 DEFAULT_HEADERS = {"User-Agent": USER_AGENT, "Accept": "application/json, text/csv"}
+
+SCHEMES = ("http", "https")
+
+
+class _RedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Leaves a redirect to anything but http or https unfollowed. urllib allows ftp."""
+
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: IO[bytes],
+        code: int,
+        msg: str,
+        headers: HTTPMessage,
+        newurl: str,
+    ) -> urllib.request.Request | None:
+        if urllib.parse.urlsplit(newurl).scheme not in SCHEMES:
+            return None
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 class UrllibTransport(Transport):
@@ -35,6 +55,10 @@ class UrllibTransport(Transport):
     and ``headers`` to send extra headers with every request. Extra headers
     are not sent along when the server redirects the request, except a
     replaced ``User-Agent`` or ``Accept``.
+
+    Only ``http`` and ``https`` addresses are fetched. Any other address
+    raises ``ValueError``, and a redirect to one is not followed. Your own
+    opener follows redirects by its own rules.
     """
 
     def __init__(
@@ -49,7 +73,7 @@ class UrllibTransport(Transport):
         self.timeout = timeout
         self.retries = retries
         self.backoff = backoff
-        self.opener = opener or urllib.request.build_opener()
+        self.opener = opener or urllib.request.build_opener(_RedirectHandler)
         self.headers = dict(headers or {})
 
     def get(self, url: str) -> Response:
@@ -122,6 +146,8 @@ class UrllibTransport(Transport):
 
     def _open(self, url: str) -> Any:
         request = urllib.request.Request(url, headers=DEFAULT_HEADERS)
+        if request.type not in SCHEMES:
+            raise ValueError("url must start with http:// or https://")
         for name, value in self.headers.items():
             if request.has_header(name.capitalize()):
                 request.add_header(name, value)

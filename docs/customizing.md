@@ -30,7 +30,15 @@ euvd = EUVD(transport=UrllibTransport(headers={"User-Agent": "my-app/1.0"}))
 
 Extra headers go only to the address you asked for. If the server redirects the request, they are not sent along. A replaced `User-Agent` or `Accept` is the exception.
 
-`UrllibTransport(opener=...)` takes your own `urllib.request` opener for other connection settings.
+## Addresses and redirects
+
+The built-in transport only fetches `http://` and `https://` addresses. Any other address raises `ValueError`.
+
+A redirect to any other kind of address, such as `ftp://`, is not followed. The request fails with an `APIError` that carries the redirect's status.
+
+## Your own opener
+
+`UrllibTransport(opener=...)` takes your own `urllib.request` opener for other connection settings. It follows redirects by its own rules, so it may still follow one to `ftp://`.
 
 ## Your own transport
 

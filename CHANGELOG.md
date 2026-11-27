@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Security: the built-in transport no longer follows a redirect to an `ftp://` address. The request fails with an `APIError` instead.
+- Security: `UrllibTransport` now raises `ValueError` for any address that is not `http://` or `https://`, such as `file:` or `data:`.
+
 ## 0.2.1 (2026-11-27)
 
 - Security: headers set with `UrllibTransport(headers=...)` are no longer sent along when the server redirects a request. A replaced `User-Agent` or `Accept` still follows redirects.

@@ -337,3 +337,19 @@ def test_extra_headers_are_not_sent_along_when_a_download_is_redirected(api):
     assert lines[0] == "euvd_id,cve_id"
     assert "authorization" in api.headers[0]
     assert not {name.lower() for name in SECRETS} & other.headers[0].keys()
+
+
+def test_a_redirect_to_ftp_is_not_followed(transport, api, unused_url):
+    api.replies["/kev/dump"] = Reply(status=302, location=unused_url.replace("http", "ftp", 1))
+
+    assert transport.get(api.url + "/kev/dump").status == 302
+    with pytest.raises(APIError, match="302"):
+        EUVD(base_url=api.url).kev()
+
+
+@pytest.mark.parametrize("url", ["file:///etc/hostname", "data:,hello", "ftp://x.test/file"])
+def test_only_http_addresses_are_fetched(transport, url):
+    with pytest.raises(ValueError, match="http://"):
+        transport.get(url)
+    with pytest.raises(ValueError, match="http://"):
+        list(transport.stream_lines(url))
