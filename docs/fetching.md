@@ -1,3 +1,8 @@
+---
+title: Fetch EUVD vulnerabilities and advisories in Python
+description: Look up EUVD entries by EUVD or CVE ID, fetch advisories, and download the KEV list and the CVE to EUVD mapping with py-euvd.
+---
+
 # Fetching data
 
 All calls are methods of the client:
@@ -8,7 +13,7 @@ from pyeuvd import EUVD
 euvd = EUVD()
 ```
 
-## One entry
+## Look up a vulnerability by EUVD or CVE ID
 
 ```python
 vuln = euvd.get_vulnerability("EUVD-2024-31989")
@@ -19,7 +24,7 @@ vuln = euvd.get_vulnerability("CVE-2024-3400")
 
 The result also holds the linked `source_records` and `advisories`. Lists and searches leave those out.
 
-## One advisory
+## Look up an advisory
 
 ```python
 advisory = euvd.get_advisory("cisco-sa-ata19x-multi-RDTEqRsy")
@@ -27,7 +32,7 @@ advisory = euvd.get_advisory("cisco-sa-ata19x-multi-RDTEqRsy")
 
 The result also holds the `vulnerabilities` and `source_records` the advisory covers.
 
-## The latest entries
+## Latest vulnerabilities
 
 ```python
 euvd.latest()             # latest entries
@@ -37,7 +42,7 @@ euvd.latest_critical()    # latest critical entries
 
 Each returns at most 8 entries. "Latest" includes entries that were recently updated, not only new ones. Use [search](searching.md) for more.
 
-## Known exploited vulnerabilities
+## Known exploited vulnerabilities (KEV)
 
 ```python
 for entry in euvd.kev():
@@ -55,7 +60,7 @@ for euvd_id, cve_id in euvd.cve_mapping():
 
 `cve_mapping` yields one pair for every entry that is linked to a CVE. The download is large: several hundred thousand rows.
 
-## Anything else
+## Other API endpoints
 
 ```python
 euvd.get_json("/some/path", {"key": "value"})

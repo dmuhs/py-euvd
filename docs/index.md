@@ -1,6 +1,13 @@
+---
+title: Python client for the EU Vulnerability Database (EUVD)
+description: py-euvd is a dependency-free Python client for the ENISA EU Vulnerability Database (EUVD) API, with sync and async clients and typed results.
+---
+
 # py-euvd
 
 A Python client for the [EU Vulnerability Database](https://euvd.enisa.europa.eu) (EUVD), run by ENISA.
+
+Look up entries by EUVD or CVE ID, search by vendor, product, CVSS score, EPSS score or date, and download the Known Exploited Vulnerabilities (KEV) list and the CVE to EUVD mapping.
 
 - **No dependencies.** Uses only the Python standard library.
 - **Complete.** Covers every endpoint of the [public API](https://euvd.enisa.europa.eu/apidoc).

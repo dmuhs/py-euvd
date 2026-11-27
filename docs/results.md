@@ -1,3 +1,8 @@
+---
+title: EUVD results as typed Python objects
+description: What py-euvd returns for EUVD entries, advisories and KEV entries, and how to print, export and save them.
+---
+
 # Results
 
 Calls return typed objects. The [results reference](reference/results.md) lists every field.
@@ -11,7 +16,7 @@ Calls return typed objects. The [results reference](reference/results.md) lists 
 
 A source record is a CVE, GHSA or similar record that an entry is linked to.
 
-## Good to know
+## How to read the fields
 
 - **Timestamps are in UTC.**
 - **`epss` runs from 0 to 100.** EPSS is usually published as 0 to 1, so divide by 100 to compare.
@@ -21,7 +26,7 @@ A source record is a CVE, GHSA or similar record that an entry is linked to.
 - **`cve_id` is the first CVE ID among the aliases**, or `None`.
 - **`url` is the address of the page on the EUVD website.**
 
-## Printing
+## Print a result
 
 Printing a result shows a short summary:
 
@@ -29,7 +34,7 @@ Printing a result shows a short summary:
 print(vuln)   # VulnerabilityDetail(id='EUVD-2024-31989', cve_id='CVE-2024-3400', base_score=10.0)
 ```
 
-## Exporting
+## Export results to JSON
 
 `to_dict()` turns any result into plain data, ready for JSON or a database. Dates become ISO 8601 strings.
 
@@ -39,7 +44,7 @@ import json
 json.dumps(vuln.to_dict())
 ```
 
-## Saving and loading
+## Save and reload results
 
 Every result keeps the original JSON in `raw`. To save a result and load it again later, store `raw` and pass it to `from_dict`:
 
@@ -52,7 +57,7 @@ again = VulnerabilityDetail.from_dict(json.loads(saved))
 
 `from_dict` reads the API's format. It cannot read the output of `to_dict()`.
 
-## Pages
+## Search result pages
 
 A page from `search` works like a list:
 

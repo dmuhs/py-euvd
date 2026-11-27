@@ -1,3 +1,8 @@
+---
+title: Search the EUVD API from Python
+description: Search the EU Vulnerability Database by vendor, product, CVSS score, EPSS score and date with py-euvd, and go through all results.
+---
+
 # Searching
 
 ```python
@@ -14,7 +19,7 @@ for vuln in page:
 
 Results come with the newest update first.
 
-## All results
+## Get all search results
 
 To go through all results without handling pages yourself, use `iter_search`:
 
@@ -41,13 +46,13 @@ for vuln in euvd.iter_search(from_updated_date=day_before):
 
 Use the same filters in both searches.
 
-## Only the number
+## Count matching entries
 
 ```python
 euvd.count(vendor="Cisco", from_score=9)
 ```
 
-## Filters
+## Search filters
 
 All three calls take the same filters. Every filter is optional.
 

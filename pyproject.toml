@@ -8,7 +8,18 @@ license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Dominik Muhs" }]
 requires-python = ">=3.11"
 dependencies = []
-keywords = ["euvd", "enisa", "vulnerability", "cve", "security"]
+keywords = [
+    "euvd",
+    "enisa",
+    "vulnerability",
+    "vulnerability-database",
+    "cve",
+    "kev",
+    "epss",
+    "cvss",
+    "security",
+    "api-client",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

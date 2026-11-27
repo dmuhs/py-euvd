@@ -1,3 +1,8 @@
+---
+title: EUVD API Python examples
+description: Short py-euvd examples for exploited entries, changes since yesterday, critical entries for a vendor, CVE to EUVD lookups and JSON export.
+---
+
 # Examples
 
 Each example assumes a client:

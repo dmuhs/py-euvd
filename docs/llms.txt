@@ -1,0 +1,40 @@
+# py-euvd
+
+> A dependency-free Python client for the EU Vulnerability Database (EUVD) API, run by ENISA. Install it with `pip install py-euvd` and import it as `pyeuvd`. It needs Python 3.11 or newer. The API is public and needs no key.
+
+```python
+from pyeuvd import EUVD
+
+euvd = EUVD()
+
+vuln = euvd.get_vulnerability("CVE-2024-3400")
+print(vuln.id, vuln.severity, vuln.exploited)   # EUVD-2024-31989 critical True
+
+for vuln in euvd.iter_search(vendor="Cisco", from_score=9, limit=20):
+    print(vuln.id, vuln.cve_id, vuln.base_score)
+```
+
+`AsyncEUVD` has the same methods for use with `asyncio`.
+
+## Guide
+
+- [Get started](https://raw.githubusercontent.com/dmuhs/py-euvd/main/docs/index.md): install and first lookup
+- [Fetching data](https://raw.githubusercontent.com/dmuhs/py-euvd/main/docs/fetching.md): look up entries and advisories, download the KEV list and the CVE to EUVD mapping
+- [Searching](https://raw.githubusercontent.com/dmuhs/py-euvd/main/docs/searching.md): filters, paging and counting
+- [Results](https://raw.githubusercontent.com/dmuhs/py-euvd/main/docs/results.md): what comes back, and how to export and save it
+- [Async](https://raw.githubusercontent.com/dmuhs/py-euvd/main/docs/async.md): the async client and many lookups at once
+- [Errors](https://raw.githubusercontent.com/dmuhs/py-euvd/main/docs/errors.md): the errors raised, and retries
+- [Customizing](https://raw.githubusercontent.com/dmuhs/py-euvd/main/docs/customizing.md): timeouts, proxies, headers and your own transport
+- [Examples](https://raw.githubusercontent.com/dmuhs/py-euvd/main/docs/examples.md): short answers to common tasks
+
+## Reference
+
+- [Clients](https://py-euvd.spoons.fyi/reference/clients/): every method and search filter
+- [Results](https://py-euvd.spoons.fyi/reference/results/): every field of every result class
+- [Transports](https://py-euvd.spoons.fyi/reference/transports/): the HTTP layer
+- [Errors](https://py-euvd.spoons.fyi/reference/errors/): the error classes
+
+## Optional
+
+- [Changelog](https://raw.githubusercontent.com/dmuhs/py-euvd/main/CHANGELOG.md)
+- [Source code](https://github.com/dmuhs/py-euvd)

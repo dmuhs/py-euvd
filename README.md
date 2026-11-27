@@ -4,6 +4,8 @@
 
 A Python client for the [EU Vulnerability Database](https://euvd.enisa.europa.eu) (EUVD), run by ENISA.
 
+Look up entries by EUVD or CVE ID, search by vendor, product, CVSS score, EPSS score or date, and download the Known Exploited Vulnerabilities (KEV) list and the CVE to EUVD mapping.
+
 **Documentation: [py-euvd.spoons.fyi](https://py-euvd.spoons.fyi)**
 
 - **No dependencies.** Uses only the Python standard library.

@@ -1,3 +1,8 @@
+---
+title: EUVD API errors and retries in Python
+description: The errors py-euvd raises for missing entries, API errors and network failures, and how requests are retried.
+---
+
 # Errors
 
 All errors inherit from `EUVDError`.

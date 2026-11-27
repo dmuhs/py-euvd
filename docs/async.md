@@ -1,3 +1,8 @@
+---
+title: Async EUVD client for Python
+description: Use AsyncEUVD to query the EU Vulnerability Database with asyncio and look up many entries at once.
+---
+
 # Async
 
 `AsyncEUVD` has the same methods as `EUVD`.

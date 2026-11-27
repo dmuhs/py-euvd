@@ -1,3 +1,8 @@
+---
+title: Result classes reference
+description: Every field of Vulnerability, Advisory, SourceRecord, Product, KevEntry and Page in py-euvd.
+---
+
 # Results
 
 ::: pyeuvd.Vulnerability

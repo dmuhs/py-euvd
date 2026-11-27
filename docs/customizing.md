@@ -1,3 +1,8 @@
+---
+title: Timeouts, proxies, retries and custom transports
+description: Set timeouts, retries, proxies and headers in py-euvd, or replace the HTTP layer with your own transport.
+---
+
 # Customizing
 
 ## Timeout and retries
@@ -15,7 +20,7 @@ euvd = EUVD(transport=UrllibTransport(timeout=10, retries=5, backoff=1))
 
 With your own transport, set the timeout there. Passing both `timeout` and `transport` raises `ValueError`.
 
-## Corporate networks
+## Proxies and corporate networks
 
 Neither of these needs any code:
 
