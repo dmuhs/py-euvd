@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.3 (2026-11-27)
 
 - A search result without a usable `total` now raises `EUVDError`. Before, `iter_search` stopped after the first page without an error, and a `total` of `NaN` raised `ValueError`.
 
