@@ -15,18 +15,15 @@ jobs:
     permissions:
       contents: read
     steps:
-      # The version comes from the git tag, so the tags must be fetched.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
       - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          # A release build must not start from files cached by an earlier run.
           enable-cache: false
-      - run: uv sync --locked
-      - run: uv run pytest --cov
-      - run: uv build
+      - run: uv export --locked --only-group build --no-emit-project --output-file "$RUNNER_TEMP/build-constraints.txt"
+      - run: uv build --build-constraints "$RUNNER_TEMP/build-constraints.txt" --require-hashes
       # Stops a release if the built version is not the released tag.
       - if: github.event_name == 'release'
         run: ls "dist/py_euvd-${GITHUB_REF_NAME#v}-py3-none-any.whl" "dist/py_euvd-${GITHUB_REF_NAME#v}.tar.gz"
@@ -35,9 +32,9 @@ jobs:
           name: dist
           path: dist/
           if-no-files-found: error
+      - run: uv sync --locked
+      - run: uv run pytest --cov
 
-  # PyPI trusts this workflow file name together with the "pypi" environment.
-  # Renaming either breaks publishing until PyPI's settings are changed too.
   publish:
     name: Upload to PyPI
     if: github.event_name == 'release'
