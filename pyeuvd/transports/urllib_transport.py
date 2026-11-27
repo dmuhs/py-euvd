@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 # Statuses that mean "try again later".
 RETRY_STATUSES = frozenset({429, 502, 503, 504})
 
+DEFAULT_HEADERS = {"User-Agent": USER_AGENT, "Accept": "application/json, text/csv"}
+
 
 class UrllibTransport(Transport):
     """The default transport. Uses only the Python standard library.
@@ -30,7 +32,9 @@ class UrllibTransport(Transport):
 
     Proxies set in the environment (``HTTPS_PROXY``) are used automatically.
     Pass your own ``urllib.request`` opener for other connection settings,
-    and ``headers`` to send extra headers with every request.
+    and ``headers`` to send extra headers with every request. Extra headers
+    are not sent along when the server redirects the request, except a
+    replaced ``User-Agent`` or ``Accept``.
     """
 
     def __init__(
@@ -46,11 +50,7 @@ class UrllibTransport(Transport):
         self.retries = retries
         self.backoff = backoff
         self.opener = opener or urllib.request.build_opener()
-        self.headers = {
-            "User-Agent": USER_AGENT,
-            "Accept": "application/json, text/csv",
-            **(headers or {}),
-        }
+        self.headers = dict(headers or {})
 
     def get(self, url: str) -> Response:
         attempt = 0
@@ -121,7 +121,12 @@ class UrllibTransport(Transport):
         time.sleep(delay)
 
     def _open(self, url: str) -> Any:
-        request = urllib.request.Request(url, headers=self.headers)
+        request = urllib.request.Request(url, headers=DEFAULT_HEADERS)
+        for name, value in self.headers.items():
+            if request.has_header(name.capitalize()):
+                request.add_header(name, value)
+            else:
+                request.add_unredirected_header(name, value)
         return self.opener.open(request, timeout=self.timeout)
 
     @staticmethod

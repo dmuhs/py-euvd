@@ -15,7 +15,7 @@ from pyeuvd import EUVD, APIError, AsyncEUVD, TransportError, UrllibTransport, _
 from pyeuvd.transports import urllib_transport
 
 from .fakes import load_json, load_text
-from .server import Reply
+from .server import Reply, run_local_api
 
 BUSY = Reply(status=503, body=b'{"error": "busy"}')
 CUT_OFF = Reply(body=b"[", declared_length=100)
@@ -293,3 +293,47 @@ def test_proxy_from_the_environment_is_used(api, monkeypatch):
 
     assert response.json() == load_json("kev.json")
     assert api.headers[0]["host"] == "euvd.invalid"
+
+
+SECRETS = {"Authorization": "Bearer secret", "Cookie": "session=abc", "X-Api-Key": "k"}
+
+
+def test_extra_headers_are_not_sent_to_another_host(api):
+    with run_local_api() as other:
+        api.replies["/kev/dump"] = Reply(status=302, location=other.url + "/kev/dump")
+        transport = UrllibTransport(retries=0, headers={**SECRETS, "User-Agent": "my-app/1.0"})
+
+        response = transport.get(api.url + "/kev/dump")
+
+    assert response.json() == load_json("kev.json")
+    first, redirected = api.headers[0], other.headers[0]
+    assert {name.lower(): first[name.lower()] for name in SECRETS} == {
+        name.lower(): value for name, value in SECRETS.items()
+    }
+    assert first["user-agent"] == "my-app/1.0"
+    assert not {name.lower() for name in SECRETS} & redirected.keys()
+    assert redirected["user-agent"] == "my-app/1.0"
+    assert "application/json" in redirected["accept"]
+
+
+def test_extra_headers_are_not_sent_on_a_redirect_to_the_same_host(api):
+    api.replies["/old"] = Reply(status=301, location=api.url + "/kev/dump")
+
+    UrllibTransport(retries=0, headers=SECRETS).get(api.url + "/old")
+
+    assert "authorization" in api.headers[0]
+    assert not {name.lower() for name in SECRETS} & api.headers[1].keys()
+
+
+def test_extra_headers_are_not_sent_along_when_a_download_is_redirected(api):
+    with run_local_api() as other:
+        api.replies["/dump/cve-euvd-mapping"] = Reply(
+            status=302, location=other.url + "/dump/cve-euvd-mapping"
+        )
+        transport = UrllibTransport(retries=0, headers=SECRETS)
+
+        lines = list(transport.stream_lines(api.url + "/dump/cve-euvd-mapping"))
+
+    assert lines[0] == "euvd_id,cve_id"
+    assert "authorization" in api.headers[0]
+    assert not {name.lower() for name in SECRETS} & other.headers[0].keys()

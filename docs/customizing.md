@@ -28,6 +28,8 @@ Neither of these needs any code:
 euvd = EUVD(transport=UrllibTransport(headers={"User-Agent": "my-app/1.0"}))
 ```
 
+Extra headers go only to the address you asked for. If the server redirects the request, they are not sent along. A replaced `User-Agent` or `Accept` is the exception.
+
 `UrllibTransport(opener=...)` takes your own `urllib.request` opener for other connection settings.
 
 ## Your own transport

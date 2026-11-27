@@ -22,6 +22,7 @@ class Reply:
     body: bytes = b""
     declared_length: int | None = None  # set higher than the body to cut the response short
     delay: float = 0.0
+    location: str | None = None
 
 
 @dataclass
@@ -50,6 +51,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             self.send_response(reply.status)
             self.send_header("Content-Length", str(length))
+            if reply.location:
+                self.send_header("Location", reply.location)
             self.end_headers()
             self.wfile.write(reply.body)
         except OSError:
