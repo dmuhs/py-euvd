@@ -22,6 +22,11 @@ def test_json_rejects_other_content():
         Response(200, b"<html>maintenance</html>").json()
 
 
+def test_json_rejects_deep_nesting():
+    with pytest.raises(EUVDError, match="did not return JSON"):
+        Response(200, b"[" * 100_000).json()
+
+
 def test_raise_for_status_passes_on_success():
     Response(200, b"[]").raise_for_status()
 
@@ -52,6 +57,9 @@ def test_other_errors_are_api_errors():
         (500, b"x" * 500, "x" * 200),  # long bodies are cut
         (502, b"", "Bad Gateway"),  # no body: use the standard status text
         (599, b"", "HTTP error"),  # no body and an unknown status
+        (500, b"[" * 100_000, "[" * 200),  # nested too deeply to parse
+        (400, b'{"error": "bad\\n\\u001b[31mid"}', "bad  [31mid"),  # control characters
+        (500, b"down\r\n\x1b[2Jnow", "down   [2Jnow"),
     ],
 )
 def test_error_message_fallbacks(status, body, message):

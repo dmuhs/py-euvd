@@ -111,6 +111,7 @@ def test_describe_error():
     assert utils.describe_error(TimeoutError("timed out")) == "timed out"
     assert utils.describe_error(URLError("no route to host")) == "no route to host"
     assert utils.describe_error(ConnectionResetError()) == "ConnectionResetError"
+    assert utils.describe_error(URLError("bad\x1b[31m\nline")) == "bad [31m line"
 
 
 @pytest.mark.parametrize(

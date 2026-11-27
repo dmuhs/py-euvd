@@ -7,9 +7,11 @@ All errors inherit from `EUVDError`.
 | `NotFoundError` | The API answered 404. No entry or advisory has that ID. |
 | `APIError` | The API answered with an error status. See `status_code` and `message`. |
 | `TransportError` | Network failure, timeout, or a download that was cut off. |
-| `EUVDError` | The API returned something unexpected, such as a page that is not JSON. |
+| `EUVDError` | The API returned something unexpected, such as a page that is not JSON or a response that is too large. |
 
 `NotFoundError` is a kind of `APIError`.
+
+Control characters in text from the server, such as line breaks, are replaced with spaces in error messages. That makes the messages safe to log.
 
 ```python
 from pyeuvd import NotFoundError

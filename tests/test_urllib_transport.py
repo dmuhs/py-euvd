@@ -3,15 +3,25 @@
 from __future__ import annotations
 
 import asyncio
+import io
 import socket
 import ssl
 import urllib.request
+from email.message import Message
 from types import SimpleNamespace
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 
 import pytest
 
-from pyeuvd import EUVD, APIError, AsyncEUVD, TransportError, UrllibTransport, __version__
+from pyeuvd import (
+    EUVD,
+    APIError,
+    AsyncEUVD,
+    EUVDError,
+    TransportError,
+    UrllibTransport,
+    __version__,
+)
 from pyeuvd.transports import urllib_transport
 
 from .fakes import load_json, load_text
@@ -269,6 +279,19 @@ def test_certificate_failures_are_not_retried():
     assert opener.calls == 2
 
 
+def test_get_keeps_the_status_when_the_error_body_cannot_be_read():
+    class BrokenBody(io.BytesIO):
+        def read(self, *args):
+            raise ConnectionResetError
+
+    error = HTTPError("https://x.test/api/kev/dump", 500, "boom", Message(), BrokenBody())
+    transport = UrllibTransport(opener=FailingOpener(error), retries=0)
+
+    response = transport.get("https://x.test/api/kev/dump")
+
+    assert (response.status, response.body) == (500, b"")
+
+
 def test_other_connection_failures_are_retried():
     opener = FailingOpener(URLError(ConnectionRefusedError("refused")))
     transport = UrllibTransport(opener=opener, retries=2, backoff=0)
@@ -353,3 +376,33 @@ def test_only_http_addresses_are_fetched(transport, url):
         transport.get(url)
     with pytest.raises(ValueError, match="http://"):
         list(transport.stream_lines(url))
+
+
+def test_a_response_over_the_size_limit_is_refused(api):
+    transport = UrllibTransport(retries=2, backoff=0, max_bytes=10)
+    api.replies["/kev/dump"] = Reply(body=b"x" * 11)
+    api.replies["/advisory"] = Reply(body=b"x" * 10)
+
+    with pytest.raises(EUVDError, match="larger than 10 bytes"):
+        transport.get(api.url + "/kev/dump")
+    assert len(api.headers) == 1
+    assert transport.get(api.url + "/advisory").body == b"x" * 10
+
+
+def test_stream_lines_refuses_a_line_over_the_size_limit(api):
+    api.replies["/dump/cve-euvd-mapping"] = Reply(body=b"a,b\n" + b"x" * 11)
+    lines = UrllibTransport(retries=2, backoff=0, max_bytes=10).stream_lines(
+        api.url + "/dump/cve-euvd-mapping"
+    )
+
+    assert next(lines) == "a,b"
+    with pytest.raises(EUVDError, match="larger than 10 bytes"):
+        next(lines)
+
+
+def test_an_error_body_over_the_size_limit_is_cut(api):
+    api.replies["/kev/dump"] = Reply(status=500, body=b"x" * 50)
+
+    response = UrllibTransport(retries=0, max_bytes=10).get(api.url + "/kev/dump")
+
+    assert (response.status, response.body) == (500, b"x" * 10)

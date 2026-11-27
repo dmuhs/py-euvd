@@ -9,7 +9,7 @@ euvd = EUVD(timeout=10)
 euvd = EUVD(transport=UrllibTransport(timeout=10, retries=5, backoff=1))
 ```
 
-- The timeout is 30 seconds by default.
+- The timeout is 30 seconds by default. It limits each wait for the server, not the whole request, so a server that keeps sending slowly can take longer.
 - A request that fails with a network error, a timeout or a 429, 502, 503 or 504 status is tried twice more, after 0.5 and 1 seconds. `retries` and `backoff` change that.
 - A failed TLS certificate check is not retried.
 
@@ -29,6 +29,14 @@ euvd = EUVD(transport=UrllibTransport(headers={"User-Agent": "my-app/1.0"}))
 ```
 
 Extra headers go only to the address you asked for. If the server redirects the request, they are not sent along. A replaced `User-Agent` or `Accept` is the exception.
+
+## Response size
+
+```python
+euvd = EUVD(transport=UrllibTransport(max_bytes=5_000_000))
+```
+
+The built-in transport refuses a response larger than 50 MB and raises `EUVDError`. `max_bytes` changes the limit. `cve_mapping()` is read line by line, so there the limit applies to each line.
 
 ## Addresses and redirects
 

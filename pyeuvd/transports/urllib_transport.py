@@ -10,7 +10,7 @@ from http.client import HTTPException, HTTPMessage
 from typing import IO, Any
 
 from ..constants import DEFAULT_TIMEOUT, USER_AGENT
-from ..errors import APIError, TransportError
+from ..errors import APIError, EUVDError, TransportError
 from ..response import Response
 from ..utils import describe_error, is_certificate_error
 from .transport import Transport
@@ -59,6 +59,11 @@ class UrllibTransport(Transport):
     Only ``http`` and ``https`` addresses are fetched. Any other address
     raises ``ValueError``, and a redirect to one is not followed. Your own
     opener follows redirects by its own rules.
+
+    A response larger than ``max_bytes`` raises ``EUVDError``. For
+    ``stream_lines`` the limit applies to each line.
+
+    ``timeout`` limits each wait for data, not the whole request.
     """
 
     def __init__(
@@ -69,12 +74,14 @@ class UrllibTransport(Transport):
         backoff: float = 0.5,
         opener: urllib.request.OpenerDirector | None = None,
         headers: Mapping[str, str] | None = None,
+        max_bytes: int = 50_000_000,
     ) -> None:
         self.timeout = timeout
         self.retries = retries
         self.backoff = backoff
         self.opener = opener or urllib.request.build_opener(_RedirectHandler)
         self.headers = dict(headers or {})
+        self.max_bytes = max_bytes
 
     def get(self, url: str) -> Response:
         attempt = 0
@@ -116,7 +123,9 @@ class UrllibTransport(Transport):
     def _get_once(self, url: str) -> Response:
         try:
             with self._open(url) as reply:
-                return Response(reply.status, reply.read())
+                body = self._limited(reply.read(self.max_bytes + 1))
+                self._check_complete(reply, len(body))
+                return Response(reply.status, body)
         except urllib.error.HTTPError as exc:
             return self._error_response(exc)
         except (OSError, HTTPException) as exc:
@@ -125,19 +134,26 @@ class UrllibTransport(Transport):
     def _stream_once(self, url: str) -> Generator[str, None, None]:
         try:
             with self._open(url) as reply:
-                expected = reply.headers.get("Content-Length")
                 received = 0
-                for line in reply:
+                while line := self._limited(reply.readline(self.max_bytes + 1)):
                     received += len(line)
                     yield line.decode("utf-8", "replace").rstrip("\r\n")
-                if expected is not None and received != int(expected):
-                    raise TransportError(
-                        f"download ended early: got {received} of {expected} bytes"
-                    )
+                self._check_complete(reply, received)
         except urllib.error.HTTPError as exc:
             self._error_response(exc).raise_for_status()
         except (OSError, HTTPException) as exc:
             raise TransportError(describe_error(exc)) from exc
+
+    def _limited(self, data: bytes) -> bytes:
+        if len(data) > self.max_bytes:
+            raise EUVDError(f"the response is larger than {self.max_bytes} bytes")
+        return data
+
+    @staticmethod
+    def _check_complete(reply: Any, received: int) -> None:
+        expected = reply.headers.get("Content-Length", "")
+        if expected.isdecimal() and received < int(expected):
+            raise TransportError(f"download ended early: got {received} of {expected} bytes")
 
     def _wait(self, attempt: int, url: str, problem: str) -> None:
         delay = self.backoff * 2**attempt
@@ -155,11 +171,10 @@ class UrllibTransport(Transport):
                 request.add_unredirected_header(name, value)
         return self.opener.open(request, timeout=self.timeout)
 
-    @staticmethod
-    def _error_response(error: urllib.error.HTTPError) -> Response:
+    def _error_response(self, error: urllib.error.HTTPError) -> Response:
         """Turn the exception urllib raises for error statuses into a response."""
         try:
-            body = error.read()
+            body = error.read(self.max_bytes)
         except (OSError, HTTPException):
             body = b""
         finally:

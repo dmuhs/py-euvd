@@ -88,4 +88,9 @@ def is_certificate_error(error: BaseException | None) -> bool:
 def describe_error(error: BaseException) -> str:
     """Return a short reason for a network error."""
     reason = getattr(error, "reason", None)
-    return str(reason or error) or type(error).__name__
+    return printable(str(reason or error)) or type(error).__name__
+
+
+def printable(text: str) -> str:
+    """Replace control characters with spaces, so text from a server is safe to log."""
+    return "".join(char if char.isprintable() else " " for char in text)
